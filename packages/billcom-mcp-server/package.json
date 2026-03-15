@@ -1,0 +1,42 @@
+{
+  "name": "@fintech-mcp/billcom-server",
+  "version": "0.1.0",
+  "description": "MCP server for Bill.com AP/AR automation",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "billcom-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "bill.com",
+    "billcom",
+    "accounts-payable",
+    "fintech",
+    "claude",
+    "anthropic"
+  ],
+  "author": "Christian Sidak",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
