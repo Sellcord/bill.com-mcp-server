@@ -8,12 +8,14 @@ export function registerVendorTools(server: McpServer): void {
     "List vendors from your Bill.com account. Returns vendor names, emails, and IDs.",
     {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
-      pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
+      pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 100, max 200)"),
     },
     async ({ page, pageSize }) => {
       const query: Record<string, string> = {};
-      if (page) query.page = String(page);
-      if (pageSize) query.pageSize = String(pageSize);
+      const resolvedMax = pageSize ?? 100;
+      const start = ((page ?? 1) - 1) * resolvedMax;
+      if (start > 0) query.start = String(start);
+      query.max = String(resolvedMax);
 
       const data = await request<{ results: Record<string, unknown>[] }>({
         path: "/vendors",
