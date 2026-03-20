@@ -1,35 +1,31 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request } from "../client.js";
 
 export function registerChartOfAccountTools(server: McpServer): void {
   server.tool(
     "list_chart_of_accounts",
     "List chart of accounts from your Bill.com organization. Returns account names, types, and IDs.",
     {
-      page: z.number().int().min(1).optional().describe("Page number (default 1)"),
-      pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 100, max 200)"),
+      max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100, default 20)"),
+      page: z.string().optional().describe("Page cursor from a previous response's 'nextPage' or 'prevPage' field"),
     },
-    async ({ page, pageSize }) => {
+    async ({ max, page }) => {
       const query: Record<string, string> = {};
-      const resolvedMax = pageSize ?? 100;
-      const start = ((page ?? 1) - 1) * resolvedMax;
-      if (start > 0) query.start = String(start);
-      query.max = String(resolvedMax);
+      if (max) query.max = String(max);
+      if (page) query.page = page;
 
-      const data = await request<{ results: Record<string, unknown>[] }>({
+      const data = await request<{ results: Record<string, unknown>[]; nextPage?: string; prevPage?: string }>({
         path: "/classifications/chart-of-accounts",
         query,
       });
-
-      const { items, truncated, total } = truncateList(data.results);
 
       return {
         content: [
           {
             type: "text" as const,
             text: JSON.stringify(
-              { accounts: items, total, truncated },
+              { accounts: data.results, nextPage: data.nextPage, prevPage: data.prevPage },
               null,
               2
             ),
