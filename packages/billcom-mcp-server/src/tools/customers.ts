@@ -1,33 +1,31 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request } from "../client.js";
 
 export function registerCustomerTools(server: McpServer): void {
   server.tool(
     "list_customers",
     "List customers from your Bill.com account. Returns customer names, emails, and IDs.",
     {
-      page: z.number().int().min(1).optional().describe("Page number (default 1)"),
-      pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
+      max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100). The API returns 20 by default when omitted."),
+      page: z.string().optional().describe("Page cursor from a previous response's 'nextPage' or 'prevPage' field"),
     },
-    async ({ page, pageSize }) => {
+    async ({ max, page }) => {
       const query: Record<string, string> = {};
-      if (page) query.page = String(page);
-      if (pageSize) query.pageSize = String(pageSize);
+      if (max) query.max = String(max);
+      if (page) query.page = page;
 
-      const data = await request<{ results: Record<string, unknown>[] }>({
+      const data = await request<{ results: Record<string, unknown>[]; nextPage?: string; prevPage?: string }>({
         path: "/customers",
         query,
       });
-
-      const { items, truncated, total } = truncateList(data.results);
 
       return {
         content: [
           {
             type: "text" as const,
             text: JSON.stringify(
-              { customers: items, total, truncated },
+              { customers: data.results, nextPage: data.nextPage, prevPage: data.prevPage },
               null,
               2
             ),

@@ -32,8 +32,8 @@ interface PaginatedResponse<T = unknown> {
   response_status: number;
   response_message: string;
   response_data: T[];
-  total_count?: number;
-  page?: number;
+  nextPage?: string;
+  prevPage?: string;
 }
 
 function getConfig(): BillComConfig {
@@ -186,13 +186,4 @@ async function requestInner<T>(opts: RequestOptions, allowRetry: boolean): Promi
   return res.json() as Promise<T>;
 }
 
-/**
- * Truncate large arrays in API responses for LLM context efficiency.
- */
-export function truncateList<T>(items: T[], limit = 50): { items: T[]; truncated: boolean; total: number } {
-  return {
-    items: items.slice(0, limit),
-    truncated: items.length > limit,
-    total: items.length,
-  };
-}
+
