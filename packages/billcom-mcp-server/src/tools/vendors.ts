@@ -7,7 +7,7 @@ export function registerVendorTools(server: McpServer): void {
     "list_vendors",
     "List vendors from your Bill.com account. Returns vendor names, emails, and IDs.",
     {
-      max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100, default 20)"),
+      max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100). The API returns 20 by default when omitted."),
       page: z.string().optional().describe("Page cursor from a previous response's 'nextPage' or 'prevPage' field"),
     },
     async ({ max, page }) => {

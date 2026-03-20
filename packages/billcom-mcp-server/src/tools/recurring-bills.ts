@@ -7,7 +7,7 @@ export function registerRecurringBillTools(server: McpServer): void {
     "list_recurring_bills",
     "List recurring bills from your Bill.com account.",
     {
-      max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100, default 20)"),
+      max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100). The API returns 20 by default when omitted."),
       page: z.string().optional().describe("Page cursor from a previous response's 'nextPage' or 'prevPage' field"),
     },
     async ({ max, page }) => {
