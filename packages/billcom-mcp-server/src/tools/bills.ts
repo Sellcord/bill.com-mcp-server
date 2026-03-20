@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerBillTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerBillTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerBillTools(server: McpServer): void {
     {
       billId: z.string().describe("The Bill.com bill ID"),
     },
-    async ({ billId }) => {
+    async ({ billId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/bills/${billId}`,
       });
@@ -56,7 +56,7 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -80,7 +80,7 @@ export function registerBillTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the bill"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {
         vendorId: params.vendorId,
         dueDate: params.dueDate,
@@ -109,7 +109,7 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -133,7 +133,7 @@ export function registerBillTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the bill"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.vendorId) body.vendorId = params.vendorId;
       if (params.dueDate) body.dueDate = params.dueDate;
@@ -160,7 +160,7 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -169,7 +169,7 @@ export function registerBillTools(server: McpServer): void {
     {
       billId: z.string().describe("The Bill.com bill ID to archive"),
     },
-    async ({ billId }) => {
+    async ({ billId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/bills/${billId}/archive`,
@@ -183,7 +183,7 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -192,7 +192,7 @@ export function registerBillTools(server: McpServer): void {
     {
       billId: z.string().describe("The Bill.com bill ID to restore"),
     },
-    async ({ billId }) => {
+    async ({ billId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/bills/${billId}/restore`,
@@ -206,7 +206,7 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -215,7 +215,7 @@ export function registerBillTools(server: McpServer): void {
     {
       billId: z.string().describe("The Bill.com bill ID to approve"),
     },
-    async ({ billId }) => {
+    async ({ billId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: "/bill-approvals/actions",
@@ -230,6 +230,6 @@ export function registerBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }
