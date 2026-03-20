@@ -5,15 +5,19 @@ import { request } from "../client.js";
 export function registerChartOfAccountTools(server: McpServer): void {
   server.tool(
     "list_chart_of_accounts",
-    "List chart of accounts from your Bill.com organization. Returns account names, types, and IDs.",
+    "List chart of accounts from your Bill.com organization. Returns account names, types, and IDs. Supports filtering and sorting.",
     {
       max: z.number().int().min(1).max(100).optional().describe("Maximum number of results (1–100). The API returns 20 by default when omitted."),
       page: z.string().optional().describe("Page cursor from a previous response's 'nextPage' or 'prevPage' field"),
+      sort: z.string().optional().describe("Field name and sort order. Format: field:asc|desc or compound field1:asc,field2:desc. Example: createdTime:desc"),
+      filters: z.string().optional().describe("Field name, operator, and value for filtering. Format: field:op:value or compound field1:op:value,field2:op:value. Example: name:eq:Expenses"),
     },
-    async ({ max, page }) => {
+    async ({ max, page, sort, filters }) => {
       const query: Record<string, string> = {};
       if (max) query.max = String(max);
       if (page) query.page = page;
+      if (sort) query.sort = sort;
+      if (filters) query.filters = filters;
 
       const data = await request<{ results: Record<string, unknown>[]; nextPage?: string; prevPage?: string }>({
         path: "/classifications/chart-of-accounts",
