@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerPaymentTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerPaymentTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerPaymentTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerPaymentTools(server: McpServer): void {
     {
       paymentId: z.string().describe("The Bill.com payment ID"),
     },
-    async ({ paymentId }) => {
+    async ({ paymentId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/payments/${paymentId}`,
       });
@@ -56,7 +56,7 @@ export function registerPaymentTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -65,7 +65,7 @@ export function registerPaymentTools(server: McpServer): void {
     {
       paymentId: z.string().describe("The Bill.com payment ID to cancel"),
     },
-    async ({ paymentId }) => {
+    async ({ paymentId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/payments/${paymentId}/cancel`,
@@ -79,7 +79,7 @@ export function registerPaymentTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -89,7 +89,7 @@ export function registerPaymentTools(server: McpServer): void {
       paymentId: z.string().describe("The Bill.com payment ID to void"),
       voidReason: z.string().describe("Reason for voiding the payment"),
     },
-    async ({ paymentId, voidReason }) => {
+    async ({ paymentId, voidReason }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/payments/${paymentId}/void`,
@@ -104,6 +104,6 @@ export function registerPaymentTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

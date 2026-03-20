@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerRecurringBillTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerRecurringBillTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerRecurringBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerRecurringBillTools(server: McpServer): void {
     {
       recurringBillId: z.string().describe("The Bill.com recurring bill ID"),
     },
-    async ({ recurringBillId }) => {
+    async ({ recurringBillId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/recurringbills/${recurringBillId}`,
       });
@@ -56,7 +56,7 @@ export function registerRecurringBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -79,7 +79,7 @@ export function registerRecurringBillTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the recurring bill"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {
         vendorId: params.vendorId,
         schedule: {
@@ -105,7 +105,7 @@ export function registerRecurringBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -129,7 +129,7 @@ export function registerRecurringBillTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the recurring bill"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.vendorId) body.vendorId = params.vendorId;
       if (params.description) body.description = params.description;
@@ -155,7 +155,7 @@ export function registerRecurringBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -164,7 +164,7 @@ export function registerRecurringBillTools(server: McpServer): void {
     {
       recurringBillId: z.string().describe("The Bill.com recurring bill ID to archive"),
     },
-    async ({ recurringBillId }) => {
+    async ({ recurringBillId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/recurringbills/${recurringBillId}/archive`,
@@ -178,7 +178,7 @@ export function registerRecurringBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -187,7 +187,7 @@ export function registerRecurringBillTools(server: McpServer): void {
     {
       recurringBillId: z.string().describe("The Bill.com recurring bill ID to restore"),
     },
-    async ({ recurringBillId }) => {
+    async ({ recurringBillId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/recurringbills/${recurringBillId}/restore`,
@@ -201,6 +201,6 @@ export function registerRecurringBillTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

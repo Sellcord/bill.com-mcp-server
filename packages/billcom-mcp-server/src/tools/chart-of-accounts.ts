@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerChartOfAccountTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
     {
       chartOfAccountId: z.string().describe("The Bill.com chart of account ID"),
     },
-    async ({ chartOfAccountId }) => {
+    async ({ chartOfAccountId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/classifications/chart-of-accounts/${chartOfAccountId}`,
       });
@@ -56,7 +56,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -68,7 +68,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
       accountType: z.string().describe("Account type (e.g. EXPENSE, INCOME, ASSET, LIABILITY)"),
       accountNumber: z.string().optional().describe("Account number"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = { name: params.name };
       if (params.description) body.description = params.description;
 
@@ -90,7 +90,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -103,7 +103,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
       accountType: z.string().optional().describe("Account type (e.g. EXPENSE, INCOME, ASSET, LIABILITY)"),
       accountNumber: z.string().optional().describe("Account number"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.name) body.name = params.name;
       if (params.description) body.description = params.description;
@@ -129,7 +129,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -138,7 +138,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
     {
       chartOfAccountId: z.string().describe("The Bill.com chart of account ID"),
     },
-    async ({ chartOfAccountId }) => {
+    async ({ chartOfAccountId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/classifications/chart-of-accounts/${chartOfAccountId}/archive`,
@@ -152,7 +152,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -161,7 +161,7 @@ export function registerChartOfAccountTools(server: McpServer): void {
     {
       chartOfAccountId: z.string().describe("The Bill.com chart of account ID"),
     },
-    async ({ chartOfAccountId }) => {
+    async ({ chartOfAccountId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/classifications/chart-of-accounts/${chartOfAccountId}/restore`,
@@ -175,6 +175,6 @@ export function registerChartOfAccountTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerVendorTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerVendorTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerVendorTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerVendorTools(server: McpServer): void {
     {
       vendorId: z.string().describe("The Bill.com vendor ID"),
     },
-    async ({ vendorId }) => {
+    async ({ vendorId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/vendors/${vendorId}`,
       });
@@ -56,7 +56,7 @@ export function registerVendorTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -74,7 +74,7 @@ export function registerVendorTools(server: McpServer): void {
       country: z.string().optional().describe("Country code (e.g. US)"),
       accountNumber: z.string().optional().describe("Your account number with this vendor"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = { name: params.name };
       if (params.email) body.email = params.email;
       if (params.phone) body.phone = params.phone;
@@ -104,7 +104,7 @@ export function registerVendorTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -122,7 +122,7 @@ export function registerVendorTools(server: McpServer): void {
       zip: z.string().optional().describe("ZIP/postal code"),
       country: z.string().optional().describe("Country code (e.g. US)"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.name) body.name = params.name;
       if (params.email) body.email = params.email;
@@ -151,7 +151,7 @@ export function registerVendorTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -160,7 +160,7 @@ export function registerVendorTools(server: McpServer): void {
     {
       vendorId: z.string().describe("The Bill.com vendor ID to archive"),
     },
-    async ({ vendorId }) => {
+    async ({ vendorId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/vendors/${vendorId}/archive`,
@@ -174,7 +174,7 @@ export function registerVendorTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -183,7 +183,7 @@ export function registerVendorTools(server: McpServer): void {
     {
       vendorId: z.string().describe("The Bill.com vendor ID to restore"),
     },
-    async ({ vendorId }) => {
+    async ({ vendorId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/vendors/${vendorId}/restore`,
@@ -197,6 +197,6 @@ export function registerVendorTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerRecurringInvoiceTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
     {
       recurringInvoiceId: z.string().describe("The Bill.com recurring invoice ID"),
     },
-    async ({ recurringInvoiceId }) => {
+    async ({ recurringInvoiceId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/recurring-invoices/${recurringInvoiceId}`,
       });
@@ -56,7 +56,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -79,7 +79,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
         )
         .describe("Individual line items on the recurring invoice"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {
         customerId: params.customerId,
         schedule: params.schedule,
@@ -100,7 +100,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -125,7 +125,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the recurring invoice"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.customerId) body.customerId = params.customerId;
       if (params.schedule) body.schedule = params.schedule;
@@ -145,7 +145,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -154,7 +154,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
     {
       recurringInvoiceId: z.string().describe("The Bill.com recurring invoice ID"),
     },
-    async ({ recurringInvoiceId }) => {
+    async ({ recurringInvoiceId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/recurring-invoices/${recurringInvoiceId}/archive`,
@@ -168,7 +168,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -177,7 +177,7 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
     {
       recurringInvoiceId: z.string().describe("The Bill.com recurring invoice ID"),
     },
-    async ({ recurringInvoiceId }) => {
+    async ({ recurringInvoiceId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/recurring-invoices/${recurringInvoiceId}/restore`,
@@ -191,6 +191,6 @@ export function registerRecurringInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

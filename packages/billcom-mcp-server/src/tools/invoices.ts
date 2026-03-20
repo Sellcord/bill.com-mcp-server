@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerInvoiceTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerInvoiceTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerInvoiceTools(server: McpServer): void {
     {
       invoiceId: z.string().describe("The Bill.com invoice ID"),
     },
-    async ({ invoiceId }) => {
+    async ({ invoiceId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/invoices/${invoiceId}`,
       });
@@ -56,7 +56,7 @@ export function registerInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -78,7 +78,7 @@ export function registerInvoiceTools(server: McpServer): void {
         )
         .describe("Individual line items on the invoice"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {
         customer: { id: params.customerId },
         invoiceDate: params.invoiceDate,
@@ -101,7 +101,7 @@ export function registerInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -124,7 +124,7 @@ export function registerInvoiceTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the invoice"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.invoiceNumber) body.invoiceNumber = params.invoiceNumber;
       if (params.invoiceDate) body.invoiceDate = params.invoiceDate;
@@ -145,7 +145,7 @@ export function registerInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -154,7 +154,7 @@ export function registerInvoiceTools(server: McpServer): void {
     {
       invoiceId: z.string().describe("The Bill.com invoice ID"),
     },
-    async ({ invoiceId }) => {
+    async ({ invoiceId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/invoices/${invoiceId}/archive`,
@@ -168,7 +168,7 @@ export function registerInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -177,7 +177,7 @@ export function registerInvoiceTools(server: McpServer): void {
     {
       invoiceId: z.string().describe("The Bill.com invoice ID"),
     },
-    async ({ invoiceId }) => {
+    async ({ invoiceId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/invoices/${invoiceId}/restore`,
@@ -191,6 +191,6 @@ export function registerInvoiceTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

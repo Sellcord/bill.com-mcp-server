@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerVendorCreditTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerVendorCreditTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerVendorCreditTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerVendorCreditTools(server: McpServer): void {
     {
       vendorCreditId: z.string().describe("The Bill.com vendor credit ID"),
     },
-    async ({ vendorCreditId }) => {
+    async ({ vendorCreditId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/vendor-credits/${vendorCreditId}`,
       });
@@ -56,7 +56,7 @@ export function registerVendorCreditTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -76,7 +76,7 @@ export function registerVendorCreditTools(server: McpServer): void {
         )
         .describe("Individual line items on the vendor credit"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {
         vendorId: params.vendorId,
         creditDate: params.creditDate,
@@ -98,7 +98,7 @@ export function registerVendorCreditTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -120,7 +120,7 @@ export function registerVendorCreditTools(server: McpServer): void {
         .optional()
         .describe("Individual line items on the vendor credit"),
     },
-    async (params) => {
+    async (params) => withErrorHandling(async () => {
       const body: Record<string, unknown> = {};
       if (params.vendorId) body.vendorId = params.vendorId;
       if (params.creditDate) body.creditDate = params.creditDate;
@@ -141,7 +141,7 @@ export function registerVendorCreditTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -150,7 +150,7 @@ export function registerVendorCreditTools(server: McpServer): void {
     {
       vendorCreditId: z.string().describe("The Bill.com vendor credit ID to archive"),
     },
-    async ({ vendorCreditId }) => {
+    async ({ vendorCreditId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         method: "POST",
         path: `/vendor-credits/${vendorCreditId}/archive`,
@@ -164,6 +164,6 @@ export function registerVendorCreditTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }

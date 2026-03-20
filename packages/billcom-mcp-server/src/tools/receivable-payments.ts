@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { request, truncateList } from "../client.js";
+import { request, truncateList, withErrorHandling } from "../client.js";
 
 export function registerReceivablePaymentTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerReceivablePaymentTools(server: McpServer): void {
       page: z.number().int().min(1).optional().describe("Page number (default 1)"),
       pageSize: z.number().int().min(1).max(200).optional().describe("Results per page (default 50, max 200)"),
     },
-    async ({ page, pageSize }) => {
+    async ({ page, pageSize }) => withErrorHandling(async () => {
       const query: Record<string, string> = {};
       if (page) query.page = String(page);
       if (pageSize) query.pageSize = String(pageSize);
@@ -34,7 +34,7 @@ export function registerReceivablePaymentTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 
   server.tool(
@@ -43,7 +43,7 @@ export function registerReceivablePaymentTools(server: McpServer): void {
     {
       receivablePaymentId: z.string().describe("The Bill.com receivable payment ID"),
     },
-    async ({ receivablePaymentId }) => {
+    async ({ receivablePaymentId }) => withErrorHandling(async () => {
       const data = await request<Record<string, unknown>>({
         path: `/receivable-payments/${receivablePaymentId}`,
       });
@@ -56,6 +56,6 @@ export function registerReceivablePaymentTools(server: McpServer): void {
           },
         ],
       };
-    }
+    })
   );
 }
