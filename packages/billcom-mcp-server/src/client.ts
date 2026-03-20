@@ -66,6 +66,7 @@ let activeRequests = 0;
 const requestQueue: Array<{ resolve: () => void; reject: (err: Error) => void }> = [];
 const MAX_CONCURRENT = 3;
 const MAX_QUEUE_SIZE = 100;
+const QUEUE_TIMEOUT_MS = 30_000; // reject a queued request after 30 s
 
 function acquireSlot(): Promise<void> {
   if (activeRequests < MAX_CONCURRENT) {
@@ -76,7 +77,16 @@ function acquireSlot(): Promise<void> {
     return Promise.reject(new Error("Request queue is full; too many concurrent requests"));
   }
   return new Promise((resolve, reject) => {
-    requestQueue.push({ resolve, reject });
+    const entry = { resolve, reject };
+    requestQueue.push(entry);
+    // Automatically reject this waiter if it has not been served within the timeout
+    setTimeout(() => {
+      const idx = requestQueue.indexOf(entry);
+      if (idx !== -1) {
+        requestQueue.splice(idx, 1);
+        reject(new Error("Request queue timeout; the server may be overloaded"));
+      }
+    }, QUEUE_TIMEOUT_MS);
   });
 }
 
@@ -91,6 +101,13 @@ function releaseSlot(): void {
 
 // Clear sensitive in-memory state on process shutdown
 function clearSensitiveState(): void {
+  // Reject all pending queued requests so callers do not hang after shutdown.
+  // Queue entries have not yet been assigned an active slot, so activeRequests is unchanged.
+  const drainError = new Error("Server is shutting down");
+  let entry: (typeof requestQueue)[number] | undefined;
+  while ((entry = requestQueue.shift()) !== undefined) {
+    entry.reject(drainError);
+  }
   session = null;
   config = null;
 }
